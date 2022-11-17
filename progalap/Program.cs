@@ -1,118 +1,132 @@
 ﻿using System;
 
-//ELTE IK
-//Programozási alapismeretek EA+GY (IK-19fszPAEG)
-//2022 I. félév
-
 /*
- Név asd
-NK asd
-
-3
-10 10
-12 11
-4 0
- */
-
-class Measurement
+3,0 2
+600000 600000 HUF
+-860,4 -100 THB
+*/
+namespace zh
 {
-    public int total;
-    public int positive;
-}
+    class Transaction
+    {
+        public double forintValue;
+        public double originalValue;
+        public string currency;
 
+        public Transaction(double forintValue, double originalValue, string currency)
+        {
+            this.forintValue = forintValue;
+            this.originalValue = originalValue;
+            this.currency = currency;
+        }
+    }
 
-namespace ConsoleApp1
-{
     internal class Program
     {
+        static Transaction[] transactions;
+        static double K;
+
         static void Main(string[] args)
         {
-            Measurement[] measurements = ReadInput();
+            Read();
+            while (true)
+            {
+                Console.Write("melyik részfeladat [1,2,3,exit] ?: ");
+                string input = Console.ReadLine();
+                switch (input)
+                {
+                    case "1":
+                        bool v1 = Van(K);
+                        if (v1)
+                            Console.WriteLine("volt ilyen időszsak;");
+                        else
+                            Console.WriteLine("nem volt ilyen időszak");
+                        break;
 
-            int v1 = A(measurements);
-            
-            if (v1 == -1)
-                Console.WriteLine("a) Még nem történt ilyen.");
-            else
-                Console.WriteLine("a) " + (v1 + 1) + "-adik/edik nap volt az első ilyen.");
-
-
-            double v2 = B(measurements);
-            Console.WriteLine("b) " +v2 +"% -a ferzőzött az embereknek.");
-
-            double v3 = C(measurements);
-            if (v3 == -1)
-                Console.WriteLine("c) Még nem kezdődött el a felmérés.");
-            else
-                Console.WriteLine("c) " + (v3 + 1) + "-adik/edik nap volt a kiemelkedő.");
+                    case "2":
+                        Console.WriteLine("milyen pénznem?: ");
+                        input = Console.ReadLine();
+                        double v2 = ezFt(input);
+                        Console.WriteLine("ennyi történt: " + v2);
+                        break;
+                    case "3":
+                        double v3 = AvgTHB();
+                        Console.WriteLine("átlagos THB árfolyam: " + v3);
+                        break;
+                    case "exit":
+                        return;
+                        break;
+                    default:
+                        Console.WriteLine("nincs ilyen menüpont");
+                        break;
+                }
+            }
         }
-
-
-        static Measurement[] ReadInput()
+        static void Read()
         {
-            int N;
             string line = Console.ReadLine();
-            N = int.Parse(line);
+            string[] splitLine = line.Split(" ");
+            K = double.Parse(splitLine[0].Replace(",", "."));
+            int N = int.Parse(splitLine[1]);
 
-            Measurement[] measurements = new Measurement[N];
+            transactions = new Transaction[N];
 
             for (int i = 0; i < N; i++)
             {
                 line = Console.ReadLine();
-                string[] fields = line.Split(" ");
-                measurements[i] = new Measurement();
-                measurements[i].total = int.Parse(fields[0]);
-                measurements[i].positive = int.Parse(fields[1]);
+                splitLine = line.Split(" ");
+                double f = double.Parse(splitLine[0].Replace(",", "."));
+                double o = double.Parse(splitLine[1].Replace(",", "."));
+                string c = splitLine[2];
+                transactions[i] = new Transaction(f, o, c);
             }
-
-            return measurements;
         }
 
-        static int A(Measurement[] measurements)
+        static bool Van(double K)
         {
-            int i = 0;
-            while (i < measurements.Length && measurements[i].positive <= 10)
+            int i;
+            double Egyenleg;
+            i = 0;
+            Egyenleg = K;
+            while (i < transactions.Length && Egyenleg >=0)
             {
+                Egyenleg = Egyenleg + transactions[i].forintValue;
                 i = i + 1;
             }
-            if (i < measurements.Length)
-                return i;
-            else
-                return -1;
+            return Egyenleg < 0;
         }
 
-        static double B(Measurement[] measurements)
+        static double ezFt(string x)
         {
             int i;
-            int x = 0;
-            int y = 0;
-            for (i = 0; i < measurements.Length; i++)
+            double szum;
+            szum = 0;
+            for (i = 0; i < transactions.Length; i++)
             {
-                x = x + measurements[i].positive;
-                y = y + measurements[i].total;
-            }
-
-            return Convert.ToDouble(x) / y * 100.0;
-        }
-
-        static int C(Measurement[] measurements)
-        {
-            int i;
-            int v;
-            if (measurements.Length > 0)
-            {
-                v = 0;
-                for (i = 1; i < measurements.Length; i++)
+                if (transactions[i].currency == x && transactions[i].forintValue < 0)
                 {
-                    if (measurements[i].positive > measurements[v].positive)
-                        v = i;
+                    szum = szum + transactions[i].forintValue;
                 }
             }
-            else
+            return -szum;
+        }
+
+        static double AvgTHB()
+        {
+            int i;
+            double shuf;
+            double sthb;
+            shuf = 0;
+            sthb = 0;
+            for (i = 0; i < transactions.Length; i++)
             {
-                v = -1;
+                if (transactions[i].currency == "THB")
+                {
+                    shuf = shuf + transactions[i].forintValue;
+                    sthb = sthb + transactions[i].originalValue;
+                }
             }
-            return v;
+            return shuf / sthb;
         }
     }
 }
