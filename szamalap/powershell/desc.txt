@@ -1,0 +1,3 @@
+admin terminalban adjuk ki ezt a parancsot:
+Set-ExecutionPolicy RemoteSigned
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
